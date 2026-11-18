@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Administrasi Guru Terpadu</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --border: #cbd5e1;
+            --success: #16a34a;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+            background: var(--card);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        header {
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        /* Navigasi Tab */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+        }
+
+        .tab-btn {
+            padding: 10px 18px;
+            border: none;
+            background: #e2e8f0;
+            color: var(--text);
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Form Styling */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full {
+            grid-column: span 2;
+        }
+
+        label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        input, select, textarea {
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.95rem;
+            width: 100%;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 90px;
+        }
+
+        /* Tombol Aksi */
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-outline { background: white; border: 1px solid var(--border); color: var(--text); }
+        .btn-outline:hover { background: #f1f5f9; }
+
+        /* Tabel Pratinjau Cetak */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid var(--border);
+            padding: 10px;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background-color: #f1f5f9;
+        }
+
+        .status-msg {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 6px;
+            display: none;
+            font-weight: 500;
+        }
+
+        .kop-surat {
+            display: none;
+            text-align: center;
+            border-bottom: 3px double #000;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .ttd-area {
+            display: none;
+            margin-top: 40px;
+            justify-content: space-between;
+        }
+
+        /* PENGATURAN KHUSUS CETAK PDF (@media print) */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .container {
+                box-shadow: none;
+                padding: 0;
+                max-width: 100%;
+            }
+            .no-print, .tabs, .actions, .status-msg {
+                display: none !important;
+            }
+            .kop-surat {
+                display: block;
+            }
+            .ttd-area {
+                display: flex;
+            }
+            input, select, textarea {
+                border: none;
+                padding: 2px 0;
+                background: transparent;
+                appearance: none;
+                -webkit-appearance: none;
+            }
+            textarea {
+                height: auto;
+                overflow: visible;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Kop Surat (Hanya muncul saat cetak PDF) -->
+    <div class="kop-surat">
+        <h2 style="margin:0;">PEMERINTAH PROVINSI / DINAS PENDIDIKAN</h2>
+        <h3 style="margin:5px 0;" id="print-nama-sekolah">SMA NEGERI / SMK NEGERI</h3>
+        <p style="margin:0; font-size:0.85rem;">Dokumen Administrasi Pembelajaran & Penilaian Guru</p>
+    </div>
+
+    <header class="no-print">
+        <h1>📘 Administrasi Guru Digital</h1>
+        <button class="btn btn-outline" onclick="cetakPDF()">🖨️ Cetak / Simpan PDF</button>
+    </header>
+
+    <!-- Navigasi Tab -->
+    <div class="tabs no-print">
+        <button class="tab-btn active" onclick="bukaTab(event, 'tab-modul')">1. Modul Ajar / RPP</button>
+        <button class="tab-btn" onclick="bukaTab(event, 'tab-jurnal')">2. Jurnal Mengajar</button>
+        <button class="tab-btn" onclick="bukaTab(event, 'tab-nilai')">3. Daftar Nilai Siswa</button>
+    </div>
+
+    <!-- TAB 1: MODUL AJAR / RPP -->
+    <div id="tab-modul" class="tab-content active">
+        <h3>Perangkat Ajar (Modul Ajar / RPP)</h3>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Nama Guru</label>
+                <input type="text" id="modul-guru" placeholder="Contoh: Budi Santoso, S.Pd." oninput="updateTTD()">
+            </div>
+            <div class="form-group">
+                <label>Satuan Pendidikan</label>
+                <input type="text" id="modul-sekolah" placeholder="Contoh: SMAN 1 Nusantara" oninput="updateKop()">
+            </div>
+            <div class="form-group">
+                <label>Mata Pelajaran</label>
+                <input type="text" id="modul-mapel" placeholder="Contoh: Matematika">
+            </div>
+            <div class="form-group">
+                <label>Fase / Kelas</label>
+                <input type="text" id="modul-kelas" placeholder="Contoh: Fase E / Kelas X">
+            </div>
+            <div class="form-group full">
+                <label>Alokasi Waktu</label>
+                <input type="text" id="modul-waktu" placeholder="Contoh: 2 x 45 Menit (1 Pertemuan)">
+            </div>
+            <div class="form-group full">
+                <label>Tujuan Pembelajaran</label>
+                <textarea id="modul-tujuan" placeholder="Tuliskan tujuan pembelajaran yang ingin dicapai peserta didik..."></textarea>
+            </div>
+            <div class="form-group full">
+                <label>Langkah-Langkah Pembelajaran (Pendahuluan, Inti, Penutup)</label>
+                <textarea id="modul-langkah" rows="5" placeholder="1. Pendahuluan: ...&#10;2. Kegiatan Inti: ...&#10;3. Penutup: ..."></textarea>
+            </div>
+        </div>
+        <div class="actions">
+            <button class="btn btn-success" onclick="kirimKeSheets('Modul')">☁️ Simpan ke Google Sheets</button>
+            <button class="btn btn-outline" onclick="cetakPDF()">🖨️ Cetak PDF</button>
+        </div>
+    </div>
+
+    <!-- TAB 2: JURNAL MENGAJAR -->
+    <div id="tab-jurnal" class="tab-content">
+        <h3>Jurnal Harian Mengajar</h3>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Tanggal</label>
+                <input type="date" id="jurnal-tanggal">
+            </div>
+            <div class="form-group">
+                <label>Kelas</label>
+                <input type="text" id="jurnal-kelas" placeholder="Contoh: XI IPA 2">
+            </div>
+            <div class="form-group full">
+                <label>Mata Pelajaran</label>
+                <input type="text" id="jurnal-mapel" placeholder="Contoh: Bahasa Indonesia">
+            </div>
+            <div class="form-group full">
+                <label>Materi Pokok / Kegiatan</label>
+                <textarea id="jurnal-materi" placeholder="Ringkasan materi yang diajarkan hari ini..."></textarea>
+            </div>
+            <div class="form-group full">
+                <label>Catatan Kejadian / Absensi Siswa</label>
+                <textarea id="jurnal-catatan" placeholder="Contoh: Nihil / Andi sakit, Budi izin..."></textarea>
+            </div>
+        </div>
+        <div class="actions">
+            <button class="btn btn-primary" onclick="tambahBarisJurnal()">➕ Tambah ke Tabel Cetak</button>
+            <button class="btn btn-success" onclick="kirimKeSheets('Jurnal')">☁️ Simpan ke Google Sheets</button>
+            <button class="btn btn-outline" onclick="cetakPDF()">🖨️ Cetak Rekap PDF</button>
+        </div>
+
+        <table id="tabel-jurnal">
+            <thead>
+                <tr>
+                    <th>Tanggal</th>
+                    <th>Kelas</th>
+                    <th>Mata Pelajaran</th>
+                    <th>Materi Pokok</th>
+                    <th>Catatan</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- TAB 3: DAFTAR NILAI SISWA -->
+    <div id="tab-nilai" class="tab-content">
+        <h3>Input & Rekap Nilai Siswa</h3>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Nama Siswa</label>
+                <input type="text" id="nilai-nama" placeholder="Nama lengkap siswa">
+            </div>
+            <div class="form-group">
+                <label>Kelas</label>
+                <input type="text" id="nilai-kelas" placeholder="Contoh: X-1">
+            </div>
+            <div class="form-group full">
+                <label>Mata Pelajaran</label>
+                <input type="text" id="nilai-mapel" placeholder="Contoh: Fisika">
+            </div>
+            <div class="form-group">
+                <label>Nilai Tugas (20%)</label>
+                <input type="number" id="nilai-tugas" min="0" max="100" value="0" oninput="hitungNilaiAkhir()">
+            </div>
+            <div class="form-group">
+                <label>Nilai Ulangan Harian (30%)</label>
+                <input type="number" id="nilai-uh" min="0" max="100" value="0" oninput="hitungNilaiAkhir()">
+            </div>
+            <div class="form-group">
+                <label>Nilai UTS / PTS (25%)</label>
+                <input type="number" id="nilai-uts" min="0" max="100" value="0" oninput="hitungNilaiAkhir()">
+            </div>
+            <div class="form-group">
+                <label>Nilai UAS / PAS (25%)</label>
+                <input type="number" id="nilai-uas" min="0" max="100" value="0" oninput="hitungNilaiAkhir()">
+            </div>
+            <div class="form-group full">
+                <label>Nilai Akhir (Otomatis)</label>
+                <input type="text" id="nilai-akhir" readonly style="background:#f1f5f9; font-weight:bold;">
+            </div>
+        </div>
+        <div class="actions">
+            <button class="btn btn-primary" onclick="tambahBarisNilai()">➕ Tambah ke Daftar Cetak</button>
+            <button class="btn btn-success" onclick="kirimKeSheets('Nilai')">☁️ Simpan ke Google Sheets</button>
+            <button class="btn btn-outline" onclick="cetakPDF()">🖨️ Cetak Daftar Nilai PDF</button>
+        </div>
+
+        <table id="tabel-nilai">
+            <thead>
+                <tr>
+                    <th>Nama Siswa</th>
+                    <th>Kelas</th>
+                    <th>Mapel</th>
+                    <th>Tugas</th>
+                    <th>UH</th>
+                    <th>UTS</th>
+                    <th>UAS</th>
+                    <th>Nilai Akhir</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- Notifikasi Status -->
+    <div id="status-msg" class="status-msg"></div>
+
+    <!-- Area Tanda Tangan (Hanya muncul saat cetak PDF) -->
+    <div class="ttd-area">
+        <div>
+            <p>Mengetahui,<br>Kepala Sekolah</p>
+            <br><br><br>
+            <p>_______________________<br>NIP.</p>
+        </div>
+        <div>
+            <p id="print-tanggal">Guru Mata Pelajaran</p>
+            <br><br><br>
+            <p><strong id="print-nama-guru">_______________________</strong><br>NIP.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // URL Google Apps Script yang sudah terhubung secara permanen
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyJ-czMZMHs6nSEzHsnukHQ-nKl_mrQhRriTUX_SUEluCVcPmWK46u2ZqlAuk-kAHkb8w/exec";
+
+    window.onload = function() {
+        document.getElementById('jurnal-tanggal').valueAsDate = new Date();
+    };
+
+    function bukaTab(evt, tabId) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        evt.currentTarget.classList.add('active');
+    }
+
+    function hitungNilaiAkhir() {
+        const tugas = parseFloat(document.getElementById('nilai-tugas').value) || 0;
+        const uh = parseFloat(document.getElementById('nilai-uh').value) || 0;
+        const uts = parseFloat(document.getElementById('nilai-uts').value) || 0;
+        const uas = parseFloat(document.getElementById('nilai-uas').value) || 0;
+
+        const akhir = (tugas * 0.20) + (uh * 0.30) + (uts * 0.25) + (uas * 0.25);
+        document.getElementById('nilai-akhir').value = akhir.toFixed(2);
+    }
+
+    function tambahBarisJurnal() {
+        const tbody = document.querySelector('#tabel-jurnal tbody');
+        const row = tbody.insertRow();
+        row.innerHTML = `
+            <td>${document.getElementById('jurnal-tanggal').value}</td>
+            <td>${document.getElementById('jurnal-kelas').value}</td>
+            <td>${document.getElementById('jurnal-mapel').value}</td>
+            <td>${document.getElementById('jurnal-materi').value}</td>
+            <td>${document.getElementById('jurnal-catatan').value}</td>
+        `;
+    }
+
+    function tambahBarisNilai() {
+        hitungNilaiAkhir();
+        const tbody = document.querySelector('#tabel-nilai tbody');
+        const row = tbody.insertRow();
+        row.innerHTML = `
+            <td>${document.getElementById('nilai-nama').value}</td>
+            <td>${document.getElementById('nilai-kelas').value}</td>
+            <td>${document.getElementById('nilai-mapel').value}</td>
+            <td>${document.getElementById('nilai-tugas').value}</td>
+            <td>${document.getElementById('nilai-uh').value}</td>
+            <td>${document.getElementById('nilai-uts').value}</td>
+            <td>${document.getElementById('nilai-uas').value}</td>
+            <td><strong>${document.getElementById('nilai-akhir').value}</strong></td>
+        `;
+    }
+
+    function updateKop() {
+        const sekolah = document.getElementById('modul-sekolah').value;
+        document.getElementById('print-nama-sekolah').innerText = sekolah || 'SMA NEGERI / SMK NEGERI';
+    }
+
+    function updateTTD() {
+        const guru = document.getElementById('modul-guru').value;
+        document.getElementById('print-nama-guru').innerText = guru || '_______________________';
+    }
+
+    function cetakPDF() {
+        window.print();
+    }
+
+    function tampilkanPesan(teks, bg, color) {
+        const msg = document.getElementById('status-msg');
+        msg.innerText = teks;
+        msg.style.backgroundColor = bg;
+        msg.style.color = color;
+        msg.style.display = 'block';
+        setTimeout(() => { msg.style.display = 'none'; }, 5000);
+    }
+
+    async function kirimKeSheets(jenis) {
+        let payload = { jenis: jenis };
+
+        if (jenis === 'Modul') {
+            payload.namaGuru = document.getElementById('modul-guru').value;
+            payload.sekolah = document.getElementById('modul-sekolah').value;
+            payload.kelas = document.getElementById('modul-kelas').value;
+            payload.mapel = document.getElementById('modul-mapel').value;
+            payload.waktu = document.getElementById('modul-waktu').value;
+            payload.tujuan = document.getElementById('modul-tujuan').value;
+            payload.langkah = document.getElementById('modul-langkah').value;
+        } else if (jenis === 'Jurnal') {
+            payload.tanggal = document.getElementById('jurnal-tanggal').value;
+            payload.kelas = document.getElementById('jurnal-kelas').value;
+            payload.mapel = document.getElementById('jurnal-mapel').value;
+            payload.materi = document.getElementById('jurnal-materi').value;
+            payload.catatan = document.getElementById('jurnal-catatan').value;
+        } else if (jenis === 'Nilai') {
+            hitungNilaiAkhir();
+            payload.namaSiswa = document.getElementById('nilai-nama').value;
+            payload.kelas = document.getElementById('nilai-kelas').value;
+            payload.mapel = document.getElementById('nilai-mapel').value;
+            payload.tugas = document.getElementById('nilai-tugas').value;
+            payload.uh = document.getElementById('nilai-uh').value;
+            payload.uts = document.getElementById('nilai-uts').value;
+            payload.uas = document.getElementById('nilai-uas').value;
+            payload.nilaiAkhir = document.getElementById('nilai-akhir').value;
+        }
+
+        tampilkanPesan('⏳ Mengirim data ke Google Spreadsheet...', '#e0f2fe', '#075985');
+
+        try {
+            // Mengirim data menggunakan mode no-cors ke URL Apps Script Anda
+            await fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            tampilkanPesan(`✅ Data ${jenis} berhasil dikirim ke Google Spreadsheet!`, '#dcfce7', '#166534');
+        } catch (error) {
+            tampilkanPesan('❌ Gagal mengirim data: ' + error.message, '#fee2e2', '#991b1b');
+        }
+    }
+</script>
+
+</body>
+</html>
